@@ -1,9 +1,6 @@
 name: Release
 
-on:
-  release:
-    types:
-      - created
+on: push
 
 jobs:
   build:
@@ -63,24 +60,26 @@ jobs:
       run: find out/install/ -type f -perm -u=x -exec strip -x {} +
       if: matrix.os != 'windows-latest'
 
-    - name: archive
-      id: archive
+    - name: archive (linux + macos)
+      if: matrix.os != 'windows-latest'
       run: |
         OSNAME=$(echo ${{ matrix.os }} | sed 's/-latest//')
-        VERSION=${{ github.event.release.tag_name }}
-        PKGNAME="binjgb-$OSNAME"
-        TARBALL=$PKGNAME.tar.gz
-        mv out/install binjgb-$VERSION
-        tar -czf $TARBALL binjgb-$VERSION
-        echo "::set-output name=tarball::$TARBALL"
+        VERSION=${GITHUB_SHA:0:8}
+        PKGNAME="binjgb-$VERSION-$OSNAME"
+        mv out/install/bin out/install/$PKGNAME
+        echo "pkgname=$PKGNAME" >> "$GITHUB_ENV"
+
+    - name: archive (windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        OSNAME=$(echo ${{ matrix.os }} | sed 's/-latest//')
+        VERSION=${GITHUB_SHA:0:8}
+        PKGNAME="binjgb-$VERSION-$OSNAME"
+        mv out/install/bin out/install/$PKGNAME
+        echo "pkgname=$PKGNAME" >> "$GITHUB_ENV"
 
     - name: upload tarball
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: actions/upload-artifact@v2
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./${{ steps.archive.outputs.tarball }}
-        asset_name: ${{ steps.archive.outputs.tarball }}
-        asset_content_type: application/gzip
-
+        path: out/install
+        name: ${{ env.pkgname }}
