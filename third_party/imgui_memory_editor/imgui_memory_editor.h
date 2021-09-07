@@ -120,11 +120,11 @@ struct MemoryEditor
         ReadOnly = false;
         Cols = 16;
         OptShowOptions = true;
-        OptShowDataPreview = false;
+        OptShowDataPreview = true;
         OptShowHexII = false;
         OptShowAscii = true;
         OptGreyOutZeroes = true;
-        OptUpperCaseHex = true;
+        OptUpperCaseHex = false;
         OptMidColsCount = 8;
         OptAddrDigitsCount = 0;
         HighlightColor = IM_COL32(255, 255, 255, 50);
@@ -141,7 +141,7 @@ struct MemoryEditor
         GotoAddr = (size_t)-1;
         HighlightMin = HighlightMax = (size_t)-1;
         PreviewEndianess = 0;
-        PreviewDataType = DataType_S32;
+        PreviewDataType = DataType_U8;
     }
 
     void GotoAddrAndHighlight(size_t addr_min, size_t addr_max)
@@ -226,7 +226,7 @@ struct MemoryEditor
         if (OptShowOptions)
             footer_height += height_separator + ImGui::GetFrameHeightWithSpacing() * 1;
         if (OptShowDataPreview)
-            footer_height += height_separator + ImGui::GetFrameHeightWithSpacing() * 1 + ImGui::GetTextLineHeightWithSpacing() * 3;
+            footer_height += height_separator + ImGui::GetFrameHeightWithSpacing() * 1 + ImGui::GetTextLineHeightWithSpacing() * 4;
         ImGui::BeginChild("##scrolling", ImVec2(0, -footer_height), false, ImGuiWindowFlags_NoMove);
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -517,6 +517,9 @@ struct MemoryEditor
             float x = s.GlyphWidth * 6.0f;
             bool has_value = DataPreviewAddr != (size_t)-1;
             if (has_value)
+                ShowAddress(DataPreviewAddr, base_display_addr, buf, (size_t)IM_ARRAYSIZE(buf));
+            ImGui::Text("Addr"); ImGui::SameLine(x); ImGui::TextUnformatted(has_value ? buf : "N/A");
+            if (has_value)
                 DisplayPreviewData(DataPreviewAddr, mem_data, mem_size, PreviewDataType, DataFormat_Dec, buf, (size_t)IM_ARRAYSIZE(buf));
             ImGui::Text("Dec"); ImGui::SameLine(x); ImGui::TextUnformatted(has_value ? buf : "N/A");
             if (has_value)
@@ -617,6 +620,12 @@ struct MemoryEditor
         out_buf[out_n] = 0;
         IM_ASSERT(out_n < IM_ARRAYSIZE(out_buf));
         return out_buf;
+    }
+
+    void ShowAddress(size_t addr, size_t base_addr, char* out_buf, size_t out_buf_size) const
+    {
+        snprintf(out_buf, out_buf_size, "0x%llx", (long long unsigned)(base_addr + addr));
+        return;
     }
 
     void DisplayPreviewData(size_t addr, const u8* mem_data, size_t mem_size, DataType data_type, DataFormat data_format, char* out_buf, size_t out_buf_size) const
