@@ -140,7 +140,7 @@ struct MemoryEditor
         memset(AddrInputBuf, 0, sizeof(AddrInputBuf));
         GotoAddr = (size_t)-1;
         HighlightMin = HighlightMax = (size_t)-1;
-        PreviewEndianess = 0;
+        PreviewEndianess = 1;
         PreviewDataType = DataType_U8;
     }
 
