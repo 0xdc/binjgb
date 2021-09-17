@@ -67,6 +67,7 @@ jobs:
         VERSION=${GITHUB_SHA:0:8}
         PKGNAME="binjgb-$VERSION-$OSNAME"
         mv out/install/bin out/install/$PKGNAME
+        chmod +x out/install/$PKGNAME/binjgb*
         echo "pkgname=$PKGNAME" >> "$GITHUB_ENV"
 
     - name: archive (windows)
